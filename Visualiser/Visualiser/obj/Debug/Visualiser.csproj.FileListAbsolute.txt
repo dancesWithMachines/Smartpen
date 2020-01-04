@@ -1,0 +1,10 @@
+C:\Users\Timax\source\repos\Visualiser\Visualiser\bin\Debug\Visualiser.exe.config
+C:\Users\Timax\source\repos\Visualiser\Visualiser\bin\Debug\Visualiser.exe
+C:\Users\Timax\source\repos\Visualiser\Visualiser\bin\Debug\Visualiser.pdb
+C:\Users\Timax\source\repos\Visualiser\Visualiser\obj\Debug\Visualiser.csprojAssemblyReference.cache
+C:\Users\Timax\source\repos\Visualiser\Visualiser\obj\Debug\Visualiser.Properties.Resources.resources
+C:\Users\Timax\source\repos\Visualiser\Visualiser\obj\Debug\Visualiser.csproj.GenerateResource.cache
+C:\Users\Timax\source\repos\Visualiser\Visualiser\obj\Debug\Visualiser.csproj.CoreCompileInputs.cache
+C:\Users\Timax\source\repos\Visualiser\Visualiser\obj\Debug\Visualiser.exe
+C:\Users\Timax\source\repos\Visualiser\Visualiser\obj\Debug\Visualiser.pdb
+C:\Users\Timax\source\repos\Visualiser\Visualiser\obj\Debug\Visualiser.cursor.resources
