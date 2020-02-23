@@ -3,6 +3,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Mouse.h>
 
 // Ustwienia dla ekranu
 #define OLED_RESET 4
@@ -10,13 +11,30 @@ Adafruit_SSD1306 display(128, 32, &Wire, OLED_RESET);
 
 
 bool isScreenOn = false;
+bool onStart = true;
+
 int multiplier = 0;
+int lastMultiplier;
+
+unsigned long delayTime = 0;
+bool wasChanged = false;
+
+char input = "a";
+bool hasMistake = false;
+
+bool pressPause = false;
+
 int y1 = A6;
 int x2 = A7;
 int y2 = A8;
 int x1 = A9;
+
 int x = 0;
 int y = 0;
+int lastX=x;
+int lastY=y;
+
+int wChuj=100000;
 
 //Thinkz logo bitmap
 const unsigned char thinkzLogo [] PROGMEM = {
@@ -55,34 +73,47 @@ const unsigned char thinkzLogo [] PROGMEM = {
 };
 
 void setup() {
-  Serial.begin(115200);
+  Serial1.begin(9600);
   Wire.begin();
+  Mouse.begin();
 
   pinMode(A2, OUTPUT); //Buzzer
-  //digitalWrite(A2, HIGH);
   
   setUpScreen();
+  helloMessage(); 
   setScreenToLogo();
-  
-  
 }
 
 void loop() {
   multiplier = analogRead(A3)/100;  //Read multiplier value
-  x = (readX())*multiplier/3;
-  y = (readY())*multiplier/3;
-  if (x<300*multiplier && y <300
-  *multiplier)
-    output(x, y, true);
-  else
-    output(0, 0, true);
   
+  x = (readX())*multiplier;
+  y = (readY())*multiplier;
+  if (x<890*multiplier && y <890*multiplier){
+    output(x, y, true);
+    mouse(-1*(lastX-x),-1*(lastY-y),true);
+    lastX=x;
+    lastY=y;
+  }
+  else{
+    output(lastX, lastY, false);
+    mouse(0,0,false);
+  }
+    
+  if(onStart){
+    lastMultiplier = multiplier;
+  }
+  if (!hasMistake)
+    showSensivity();
+  checkInput();
+
+  onStart = false;
 }
 
 //Sets up the screen / Konfiguracja początkowa ekranu
 void setUpScreen () {
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
-    Serial.println(F("!Error connecting with screen"));  
+    Serial1.println(F("!Error connecting with screen"));  
   } else {
     isScreenOn=true;
     display.clearDisplay();
@@ -100,16 +131,91 @@ void setScreenToLogo (){
     display.display();
 }
 
-//This is the serial output of arudino // To jest output dla arduino (serial)
+void helloMessage (){
+  display.setTextSize(3);             // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE);        // Draw white text
+  display.setCursor(15,10);             // Start at top-left corner
+  display.println(F("Hello!"));
+  display.display();
+  delay(2000);
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setCursor(5,10); 
+  display.println(F("welcome to"));
+  display.display();
+  delay(2000);
+}
+
+void allsFineZDedykacjaDlaHuberta (){
+  display.clearDisplay();
+  display.setTextSize(1); 
+  display.setCursor(50,0);
+  display.println(F("All's")); 
+  display.setTextSize(2);
+  display.setCursor(40,10);
+  display.println(F("Fine!")); 
+  display.display();
+  delay(wChuj);
+}
+
+void showSensivity(){
+  if (multiplier!=lastMultiplier){
+    lastMultiplier=multiplier;
+    display.clearDisplay();
+    display.setTextSize(2); 
+    display.setCursor(0,0);
+    display.print(F("Sensivity set to:")); 
+    display.println(multiplier);
+    display.display();
+    wasChanged=true;
+    delayTime=millis()+2000;    
+  }
+  if (wasChanged) {    
+    if (millis()>delayTime){
+      setScreenToLogo();
+      wasChanged = false;
+    }
+  }
+}
+
+void checkInput (){
+  if(Serial1.available())
+    input = Serial1.read();
+  //Serial1.println(input);
+  switch (input) {
+  case 'e':
+    display.clearDisplay();
+    display.setTextSize(1); 
+    display.setCursor(26,0);
+    display.println(F("You've got a")); 
+    display.setTextSize(2);
+    display.setCursor(20,10);
+    display.println(F("Mistake!")); 
+    display.display();
+    digitalWrite(A2, HIGH);
+    hasMistake=true;
+    break;
+  case 'd':
+    setScreenToLogo();
+    digitalWrite(A2, LOW);
+    hasMistake=false;
+    break;
+  default:
+    break;
+}
+        
+}
+
+//This is the Serial1 output of arudino // To jest output dla arduino (Serial1)
 void output(int XValue, int ZValue, bool isWriting) {
-  Serial.print("X:");
-  Serial.print(XValue);
-  Serial.print("/Z:");
-  Serial.print(ZValue);
+  Serial1.print("X:");
+  Serial1.print(XValue);
+  Serial1.print("/Z:");
+  Serial1.print(ZValue);
   if (isWriting)
-    Serial.println("/I:i//");
+    Serial1.println("/I:i//");
   else
-    Serial.println("/I:n//");       
+    Serial1.println("/I:n//");       
 }
 
 int readX(){
@@ -138,4 +244,12 @@ int readY(){
   delay(5); //pause to allow lines to power up
   
   return analogRead(x2);
+}
+
+void mouse(int xm, int ym, bool isPressed){
+  Mouse.move(xm, ym, 0);
+  if (isPressed)
+    Mouse.press();
+  else
+    Mouse.release();
 }
