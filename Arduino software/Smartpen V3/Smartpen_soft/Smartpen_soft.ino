@@ -22,7 +22,7 @@ bool wasChanged = false;
 char input = "a";
 bool hasMistake = false;
 
-bool pressPause = false;
+int boarder = 860;
 
 int y1 = A6;
 int x2 = A7;
@@ -33,6 +33,10 @@ int x = 0;
 int y = 0;
 int lastX=x;
 int lastY=y;
+
+//Zmienne testowe
+
+bool firstTouch=false;
 
 int wChuj=100000;
 
@@ -73,7 +77,7 @@ const unsigned char thinkzLogo [] PROGMEM = {
 };
 
 void setup() {
-  Serial1.begin(9600);
+  Serial.begin(9600);
   Wire.begin();
   Mouse.begin();
 
@@ -89,15 +93,18 @@ void loop() {
   
   x = (readX())*multiplier;
   y = (readY())*multiplier;
-  if (x<890*multiplier && y <890*multiplier){
+  if (x<boarder*multiplier && y <boarder*multiplier){
     output(x, y, true);
-    mouse(-1*(lastX-x),-1*(lastY-y),true);
+    if (!firstTouch)
+      mouse(-1*(lastX-x),-1*(lastY-y),true);
+    firstTouch=false;
     lastX=x;
     lastY=y;
   }
   else{
     output(lastX, lastY, false);
     mouse(0,0,false);
+    firstTouch=true;
   }
     
   if(onStart){
@@ -113,7 +120,7 @@ void loop() {
 //Sets up the screen / Konfiguracja początkowa ekranu
 void setUpScreen () {
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
-    Serial1.println(F("!Error connecting with screen"));  
+    Serial.println(F("!Error connecting with screen"));  
   } else {
     isScreenOn=true;
     display.clearDisplay();
@@ -179,9 +186,9 @@ void showSensivity(){
 }
 
 void checkInput (){
-  if(Serial1.available())
-    input = Serial1.read();
-  //Serial1.println(input);
+  if(Serial.available())
+    input = Serial.read();
+  //Serial.println(input);
   switch (input) {
   case 'e':
     display.clearDisplay();
@@ -206,16 +213,16 @@ void checkInput (){
         
 }
 
-//This is the Serial1 output of arudino // To jest output dla arduino (Serial1)
+//This is the Serial output of arudino // To jest output dla arduino (Serial)
 void output(int XValue, int ZValue, bool isWriting) {
-  Serial1.print("X:");
-  Serial1.print(XValue);
-  Serial1.print("/Z:");
-  Serial1.print(ZValue);
+  Serial.print("X:");
+  Serial.print(XValue);
+  Serial.print("/Z:");
+  Serial.print(ZValue);
   if (isWriting)
-    Serial1.println("/I:i//");
+    Serial.println("/I:i//");
   else
-    Serial1.println("/I:n//");       
+    Serial.println("/I:n//");       
 }
 
 int readX(){
